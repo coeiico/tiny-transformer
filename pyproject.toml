@@ -1,0 +1,79 @@
+[project]
+name = 'tiny-transformer'
+version = '0.1.0'
+description = 'A readable, hookable GPT-style decoder-only transformer that the other Latent Space Project repos install and build on.'
+readme = 'README.md'
+license = 'MIT'
+authors = [{ name = 'Brandon Coetzee' }]
+requires-python = '>=3.12'
+dependencies = [
+  'torch',
+  'numpy',
+  'matplotlib',
+  'einops',
+  'jaxtyping',
+  'tyro',
+  'safetensors',
+  'huggingface-hub',
+  'trackio',
+]
+
+[dependency-groups]
+dev = [
+  'pytest',
+  'ruff',
+  'basedpyright',
+  'beartype',
+  'marimo',
+  'pre-commit',
+]
+
+[build-system]
+requires = ['uv_build>=0.11,<0.12']
+build-backend = 'uv_build'
+
+[tool.ruff]
+line-length = 100
+indent-width = 2
+target-version = 'py312'
+
+# The formatter settings match the house style, but `ruff format` is deliberately not run
+# on this repo (see .agents/instructions/python-formatting.md).
+[tool.ruff.format]
+quote-style = 'single'
+indent-style = 'space'
+
+[tool.ruff.lint]
+select = ['E', 'F', 'W', 'I', 'UP', 'B', 'D', 'Q']
+# Apart from the docstring (D) and quote (Q) conventions, the lint gate is for correctness,
+# not cosmetics. E701 and E501 are cosmetic rules that can't be enforced mechanically
+# because `ruff format` is deliberately not run:
+#   E701  a one-line `if not x: return` is house style.
+#   E501  without a formatter to wrap lines, the limit above is guidance, not a gate.
+#
+# D enforces the docstring layout in .agents/instructions/python-formatting.md: triple
+# double quotes, multi-line text starting on the line after the opening quotes (D213), and
+# a one-line summary ending in a period, then a blank line. The D ignores keep it to that:
+#   D1              missing docstrings: coverage is a separate decision from layout.
+#   D203, D212      conflict with D211 (no blank line before a class docstring) and D213.
+#   D204 D411 D413  blank lines around class bodies and sections the convention leaves open.
+#   D401, D404      wording (imperative mood, no leading "This"), not layout.
+#   F722            jaxtyping shape strings such as Float[Tensor, "batch seq d_model"].
+ignore = ['E701', 'E501', 'D1', 'D203', 'D204', 'D212', 'D401', 'D404', 'D411', 'D413', 'F722']
+
+# Quotes follow .agents/instructions/python-formatting.md: single quotes for ordinary
+# strings, double for docstrings and other triple-quoted strings. A string that holds a
+# single quote keeps double quotes rather than escaping it (Q003).
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = 'single'
+multiline-quotes = 'double'
+docstring-quotes = 'double'
+
+[tool.pytest.ini_options]
+testpaths = ['tests']
+# Check jaxtyping shape annotations at runtime while the tests run.
+addopts = '--jaxtyping-packages=tiny_transformer,beartype.beartype'
+
+[tool.basedpyright]
+typeCheckingMode = 'standard'
+include = ['src', 'tests', 'train.py', 'predict.py', 'analyze.py']
