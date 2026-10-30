@@ -109,8 +109,11 @@ and edit those representations. Everything trains on a single consumer GPU or a 
 `README.md` holds this project's goal, plan and experiments. The full plan, conventions and
 open questions for all 18 repos live in the handoff doc: https://claude.ai/artifact/Qqw5xX4p5R62jhcNjhgKgz
 
-- `src/tiny_transformer/` - the package: model, data and analysis code, plus `utils.py` for run
-  bookkeeping (device, seeding, run folders, metrics.json).
+- `src/tiny_transformer/` - the package. The backbone other repos install is `config.py`,
+  `model.py` (hook points documented in its docstring), `objective.py`, `modes.py`,
+  `generate.py` and `hub.py`. `sorting.py` is this repo's demo task and is never imported by
+  the backbone. `utils.py` holds run bookkeeping (device, seeding, run folders, code state,
+  environment).
 - `train.py`, `predict.py`, `analyze.py` - separate CLIs (tyro), so analysis runs on saved
   weights without retraining.
 - `notebooks/` - marimo notebooks, saved as plain `.py` files.

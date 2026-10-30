@@ -11,9 +11,9 @@ setup:
   uv sync
   uv run pre-commit install
 
-# CPU smoke test, under 5 minutes
+# CPU smoke test, under 5 minutes; each run gets its own timestamped folder
 quick:
-  uv run train.py --quick --run-name quick
+  uv run train.py --quick --run-name quick-$(date +%Y%m%d-%H%M%S)
 
 # Full training run; pass flags through, e.g. just train --run-name wd1.0-seed0
 train *args:
@@ -23,9 +23,9 @@ train *args:
 predict run *args:
   uv run predict.py --run runs/{{run}} {{args}}
 
-# Baselines, probes, interventions and plots for a saved run
-analyze run:
-  uv run analyze.py --run runs/{{run}}
+# Baselines, head ablations and attention plots for a saved run
+analyze run *args:
+  uv run analyze.py --run runs/{{run}} {{args}}
 
 test:
   uv run pytest
