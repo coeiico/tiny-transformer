@@ -1,7 +1,7 @@
 [project]
 name = 'tiny-transformer'
 version = '0.1.0'
-description = 'A readable, hookable GPT-style decoder-only transformer that the other Latent Space Project repos install and build on.'
+description = 'A readable, hookable GPT-style decoder-only transformer, built from scratch in PyTorch.'
 readme = 'README.md'
 license = 'MIT'
 authors = [{ name = 'Brandon Coetzee' }]

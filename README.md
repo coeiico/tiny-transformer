@@ -1,12 +1,8 @@
 # tiny-transformer
 
-**The shared GPT-style backbone.** A readable, hookable GPT-style decoder-only transformer that the other Latent Space Project repos install and build on.
+**A GPT-style transformer from scratch.** A readable, hookable GPT-style decoder-only transformer that blindfold-tfm, deja-vu-tfm and tiny-trace-tfm install and build on.
 
-Part of the **Latent Space Project**: 18 small PyTorch repos that test one idea, that neural networks encode concepts and strategy in their latent space, and that we can read and edit those representations. Everything trains on a single consumer GPU or a laptop.
-
-| Roadmap | Phase | Depends on | Status |
-| --- | --- | --- | --- |
-| 3 of 18 | 1. Foundations | Lessons from clockwork-tfm | Done |
+**Status:** done.
 
 A GPT-style decoder-only transformer, packaged so other repos can install it. It follows the GPT-2 architecture as Karpathy's "Let's build GPT" video and nanoGPT write it, with every internal activation named so it can be read and overwritten.
 
@@ -119,7 +115,7 @@ The backbone needs a task to show it works. This repo's demo is **sorting**: 16 
 
 ## Done when
 
-The definition of done every Latent Space Project repo shares:
+The general checklist:
 
 Apply this checklist with the project-specific requirements and exceptions in
 [CLAUDE.md](CLAUDE.md#project-specific-scope).
