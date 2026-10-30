@@ -24,21 +24,21 @@ One readable, hookable backbone that trains on any integer token sequences: maze
 
 Chance token accuracy is 1/64 (1.6%). The bigram model sees only the previous output, so it learns that the next value is usually a bit larger, and no more.
 
-![Training curves](figures/training.png)
+![Validation loss and lists sorted exactly for three seeds and the bigram baseline](figures/curves.png)
 
-*Run `default-seed0`. Validation loss falls to 2 × 10⁻⁵ nats, and exact match is above 98% from step 1,500 and reaches 100% by the end. All three seeds hit 100% on validation at some point between steps 3,000 and 3,500.*
+*__Every seed sorts more than 98% of validation lists perfectly from step 2,000 on; the bigram model sorts none.__ Runs `default-seed0` to `default-seed2` and `bigram-seed0`. Validation loss falls by four orders of magnitude, to between 2 × 10⁻⁵ and 7 × 10⁻⁴ nats at step 4,000, while the bigram model stays at 2.3. All three seeds first reach 100% on validation between steps 3,000 and 3,500.*
 
 **Almost all of the attention work happens in one layer-0 head.** Mean-ablating each head in turn (replacing its output with its average, taken from validation lists) shows one head per seed the model cannot do without. Removing it raises test loss by 5.2–6.6 nats and wipes out 76–81% of token accuracy. Removing any single head in layers 1–3 changes the loss by at most 0.02 nats.
 
-![Head ablation](figures/head-ablation.png)
+![Test-loss rise when each head is mean-ablated, for three seeds, with each layer's whole-attention cost](figures/heads.png)
 
-*Run `default-seed0`. The critical head is 0.7 here and 0.3 in seeds 1 and 2.*
+*__In every seed one layer-0 head carries the model; layers 1 to 3 barely matter.__ Runs `default-seed0` to `default-seed2`. Each cell is one head, shaded by how much mean-ablating it raises test loss; the critical head is ringed (0.7 in seed 0, 0.3 in seeds 1 and 2). The numbers beside each row are the token accuracy lost when that layer's attention is ablated whole, as in the table below.*
 
 That head does one clear thing: **from each output position it attends to the input copy of the value just written**. Its strongest attention lands there on 98.6–99.5% of outputs across the three seeds, against 7.7% for a random input position.
 
-![Attention of the critical head](figures/critical-head-pattern.png)
+![The critical head's attention on one test list, with the expected keys ringed](figures/pattern.png)
 
-*Run `default-seed0`, one test list. In the lower half, each output row lights up the input column holding the same value.*
+*__Each output attends to the input copy of the value it has just written.__ Run `default-seed0`, head 0.7, on the first test list. Rows are the positions attending, columns the positions attended to, and shading is the attention weight. The red rings mark, for each output, the input positions holding the value just written (both copies when a value repeats); on this list, all 16 outputs put their strongest attention on a ringed cell.*
 
 | Ablation, test set | Seed 0 | Seed 1 | Seed 2 |
 | --- | --- | --- | --- |
@@ -129,6 +129,7 @@ Apply this checklist with the project-specific requirements and exceptions in
 ## Notes
 
 - **Optional, not done:** a converter to TransformerLens's `HookedTransformer`, to borrow its analysis tools. The hook names follow TransformerLens's style closely enough that one would be short.
+- The README figures are drawn in LaTeX from the files in `figures/data/`, copied from `runs/<run>/analysis/figures/figure-data/` for the runs each caption names (`.agents/instructions/figure-design.md` says how). Building them needs LuaLaTeX, the Libertinus fonts and `pdftoppm`; the PNGs are committed.
 - Runs save evaluation weights only, not resumable checkpoints: a full run takes about 3 minutes, so restarting is cheaper than resuming.
 - Other repos install this as a git dependency. While developing both at once, point them at the local folder with `uv add --editable ../tiny-transformer`, then switch back to the git source before committing.
 
@@ -142,6 +143,7 @@ just quick                                # CPU smoke test, a few seconds
 just train --run-name default-seed0       # full run, about 3.5 minutes on an RTX 3060
 just train --run-name bigram-seed0 --model.n-layers 0
 just analyze default-seed0 --name final   # baselines, head ablations, attention plots
+just figures                              # rebuild the README figures (LaTeX) from figures/data/
 just predict default-seed0 --values 5 3 9 ...
 just test                                 # pytest
 just check                                # ruff and basedpyright, as in CI
@@ -169,7 +171,7 @@ tiny-transformer/
 ├── train.py                 CLI; --quick runs the CPU smoke test
 ├── predict.py               sort a list with a trained run
 ├── analyze.py               baselines, head ablations, attention plots
-├── figures/                 README plots, copied from the runs named beside them
+├── figures/                 README figures: LaTeX sources, the data they read, built PNGs
 ├── notebooks/               marimo notebooks for exploration
 ├── tests/
 └── runs/                    outputs, gitignored

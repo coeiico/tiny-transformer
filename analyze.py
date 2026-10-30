@@ -14,6 +14,7 @@ changed.
   the value it has just written. Each comes with its chance level.
 """
 
+import csv
 import json
 import time
 from dataclasses import dataclass
@@ -204,6 +205,18 @@ def main(cfg: Config) -> None:
   print(f'trained   {results["trained"]}')
   print(f'untrained {results["untrained"]}')
 
+  # The numbers behind the README figures (figure-design.md): copy a file into figures/data/
+  # to show it there. Named after the run, so several runs can sit side by side.
+  fig_dir = out / 'figure-data'
+  fig_dir.mkdir()
+  tag = cfg.run.name
+  fields = ['step', 'train_loss', 'val_loss', 'val_token_accuracy', 'val_exact_match']
+  with (fig_dir / f'curves-{tag}.csv').open('w', newline='') as f:
+    writer = csv.DictWriter(f, fieldnames=fields)
+    writer.writeheader()
+    for h in record['history']:
+      writer.writerow({k: h[k] for k in fields})
+
   if model.cfg.n_layers > 0:
     ablations = head_ablations(model, task, val_inputs, test_inputs)
     scores, chance, cache = lookup_scores(model, task, test_inputs, offset=1)
@@ -238,6 +251,35 @@ def main(cfg: Config) -> None:
       out / 'lookup_current.png',
     )
     tokens, _ = task.build(test_inputs[:1])
+
+    with (fig_dir / f'heads-{tag}.csv').open('w', newline='') as f:
+      writer = csv.writer(f)
+      writer.writerow(['layer', 'head', 'loss_rise', 'token_accuracy_drop', 'lookup_current', 'lookup_next'])
+      for layer in range(model.cfg.n_layers):
+        for head in range(model.cfg.n_heads):
+          writer.writerow([
+            layer, head, ablations['loss_rise'][layer][head], ablations['token_accuracy_drop'][layer][head],
+            current[layer, head].item(), scores[layer, head].item(),
+          ])
+    with (fig_dir / f'layers-{tag}.csv').open('w', newline='') as f:
+      writer = csv.writer(f)
+      writer.writerow(['layer', 'loss_rise', 'token_accuracy_drop'])
+      for layer in range(model.cfg.n_layers):
+        writer.writerow([layer, ablations['layer_loss_rise'][layer], ablations['layer_token_accuracy_drop'][layer]])
+    # The critical head's attention on the first test list, with the keys it is expected to
+    # attend to: for each output query, the input positions holding the value just written.
+    n = task.length
+    row = tokens[0].tolist()
+    expected = [[q, k] for q in range(n + 1, 2 * n + 1) for k in range(n) if row[k] == row[q]]
+    save_json(fig_dir / f'pattern-{tag}.json', {
+      'layer': worst[0],
+      'head': worst[1],
+      'tokens': [vocab[t] for t in row],
+      'input_length': n,
+      'pattern': cache[f'blocks.{worst[0]}.attn.pattern'][0, worst[1]].detach().cpu().tolist(),
+      'expected': expected,
+    })
+
     plot_pattern(cache, tokens, vocab, best[0], best[1], finding, out / 'lookup_next_pattern.png')
     plot_pattern(
       cache, tokens, vocab, worst[0], worst[1],

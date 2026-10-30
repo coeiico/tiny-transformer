@@ -27,6 +27,24 @@ predict run *args:
 analyze run *args:
   uv run analyze.py --run runs/{{run}} {{args}}
 
+# Build the README figures: figures/src/*.tex -> figures/*.png (.agents/instructions/figure-design.md)
+figures:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cd figures
+  mkdir -p build
+  shopt -s nullglob
+  for script in src/*.py; do uv run python "$script"; done
+  for source in src/*.tex; do
+    name=$(basename "$source" .tex)
+    if ! TEXINPUTS='tex//:' latexmk -lualatex -interaction=nonstopmode -halt-on-error -outdir=build "$source" > "build/$name.latexmk.log" 2>&1; then
+      tail -n 30 "build/$name.log"
+      exit 1
+    fi
+    pdftoppm -r 300 -png -singlefile "build/$name.pdf" "$name"
+    echo "figures/$name.png"
+  done
+
 test:
   uv run pytest
 

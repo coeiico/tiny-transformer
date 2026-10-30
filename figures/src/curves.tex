@@ -1,0 +1,40 @@
+\documentclass[border=10pt]{standalone}
+\usepackage{latentfig}
+\input{roles}
+\input{build/values}
+\pgfplotsset{
+  curve/.style={engraved,
+    width=0.39\figwidth, height=0.27\figwidth,
+    xmin=0, xmax=4000, xtick={0,1000,2000,3000,4000}, xlabel={step},
+  },
+}
+\begin{document}
+\begin{figurecanvas}
+\begin{tikzpicture}
+\begin{axis}[curve, name=a, ymode=log, ymin=5e-6, ymax=10,
+    ytick={1e-5,1e-4,1e-3,1e-2,1e-1,1,10},
+    ylabel={validation loss (nats)}]
+  \addplot[bigram] table[x=step, y=val_loss, col sep=comma] {data/curves-bigram-seed0.csv};
+  \foreach \s in {0,1,2} {
+    \addplot[transformer, line width=0.55pt] table[x=step, y=val_loss, col sep=comma] {data/curves-default-seed\s.csv};
+  }
+  \node[note, text=ink, anchor=south east] at (axis cs:3900,2.6) {bigram: \lossBigram};
+  \node[note, text=spot, anchor=south west] at (axis cs:2150,0.02) {transformer, seeds 0 to 2};
+\end{axis}
+\begin{axis}[curve, name=b, at={($(a.east -| a.outer east)+(1.55cm,0)$)}, anchor=west,
+    ymin=-4, ymax=104, ytick={0,20,40,60,80,100},
+    ylabel={lists sorted exactly (\%)}]
+  \addplot[bigram] table[x=step, y expr=100*\thisrow{val_exact_match}, col sep=comma] {data/curves-bigram-seed0.csv};
+  \foreach \s in {0,1,2} {
+    \addplot[transformer, line width=0.55pt] table[x=step, y expr=100*\thisrow{val_exact_match}, col sep=comma] {data/curves-default-seed\s.csv};
+  }
+  \node[note, text=spot, anchor=north east] at (axis cs:3900,93) {transformer: \exactA, \exactB, \exactC};
+  \node[note, text=ink, anchor=south east] at (axis cs:3900,3) {bigram: \exactBigram};
+\end{axis}
+\node[head] at ($(a.north west)+(0,0.25)$) {(a)\enspace Loss on the sorted outputs.};
+\node[head] at ($(b.north west)+(0,0.25)$) {(b)\enspace Validation lists of 16 sorted perfectly.};
+\node[note, anchor=north] at ($(a.outer south east)!0.5!(b.outer south west)+(0,-0.1)$)
+  {Validation every 250 steps, on lists held out from training; final values at step 4\,000.};
+\end{tikzpicture}
+\end{figurecanvas}
+\end{document}

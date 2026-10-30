@@ -101,6 +101,13 @@ remove an item that is done.
 - Use `./.agents/instructions/project-structure.md` for where things go: pipeline stages,
   code versus data versus outputs, entry points, dependencies and variants.
 
+## Figures
+
+- Every figure in the README is drawn in LaTeX, from data files, and built with `just figures`.
+  Before creating or changing one, read `./.agents/instructions/figure-design.md` and follow it.
+- The look lives in `figures/tex/latentfig.sty`, identical in every repo of the project. Change
+  a design value only when the user asks, and then in every copy.
+
 ## Project Overview
 
 tiny-transformer is project 3 of 18 in the Latent Space Project: small ML repos that test whether
@@ -116,13 +123,16 @@ open questions for all 18 repos live in the handoff doc: https://claude.ai/artif
   environment).
 - `train.py`, `predict.py`, `analyze.py` - separate CLIs (tyro), so analysis runs on saved
   weights without retraining.
+- `figures/` - README figures: LaTeX sources in `src/`, their data in `data/`, the house style
+  in `tex/`, and the built PNGs the README shows.
 - `notebooks/` - marimo notebooks, saved as plain `.py` files.
 - `runs/<run-name>/` - outputs: weights (safetensors), `metrics.json` and PNG plots.
   Gitignored.
 
 Every routine command is a just recipe: `just setup`, `just quick` (CPU smoke test, under 5
-minutes), `just train`, `just analyze <run>`, `just test`, and `just check` (Ruff and
-basedpyright, as in CI). Use uv for everything; no pip, conda or requirements.txt.
+minutes), `just train`, `just analyze <run>`, `just figures` (README figures), `just test`, and
+`just check` (Ruff and basedpyright, as in CI). Use uv for everything; no pip, conda or
+requirements.txt.
 
 ## How to Work Here
 
@@ -138,7 +148,8 @@ basedpyright, as in CI). Use uv for everything; no pip, conda or requirements.tx
   Project-specific scope. Do not impose an unused interface on every model.
 - Seed the randomness the method uses. Record the resolved config, seeds, code and data
   identity, and environment with each run, following code-design.md.
-- Plot titles state the finding, not just the axes.
+- Diagnostic plots in `runs/` have titles that state the finding. README figures follow
+  `figure-design.md`: the finding goes in the caption.
 - Small variations are run names (`runs/wd1.0-seed0`), never new repos.
 
 ## Project-specific scope

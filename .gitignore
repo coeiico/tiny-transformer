@@ -14,7 +14,12 @@ __marimo__/
 # Secrets (HF_TOKEN, tracker keys)
 .env
 
+# README figure intermediates (LaTeX, PGF)
+figures/build/
+
 # Run outputs and downloaded datasets
 runs/
 data/
+# ...except a README figure's numbers, which are committed
+!figures/data/
 .trackio/

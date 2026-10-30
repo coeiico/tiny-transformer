@@ -1,0 +1,217 @@
+% =====================================================================
+%  latentfig.sty — the house style of every README figure in the Latent
+%  Space Project: the engraving style. Black ink and one vermilion spot
+%  colour, hatching instead of fills, shape instead of colour, framed
+%  axes with inward ticks, Libertinus text and maths.
+%
+%  Every repo of the project holds an identical copy; change all of them
+%  together, and only when the owner asks. Notation macros follow the
+%  owner's ai-math notes (tex/notesstyle.sty, sections 4 and 5).
+%
+%  Rules for using it: .agents/instructions/figure-design.md.
+%  Requires LuaLaTeX (unicode-math, fontspec).
+%
+%  Options
+%     text   fonts, colours and notation macros only: the preamble of
+%            matplotlib's PGF backend (figstyle.py), which only sets text
+% =====================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{latentfig}[2026/10/30 v2.0 README figures of the Latent Space Project, engraving style]
+
+\RequirePackage{iftex}
+\RequireTUTeX   % stops with a clear error under pdfLaTeX
+
+\newif\iflf@full \lf@fulltrue
+\DeclareOption{text}{\lf@fullfalse}
+\ProcessOptions\relax
+
+% ---------------------------------------------------------------------
+% 1. Maths and fonts
+% ---------------------------------------------------------------------
+\RequirePackage{amsmath}
+\RequirePackage{mathtools}
+\RequirePackage[bold-style=ISO]{unicode-math}
+\setmainfont{Libertinus Serif}
+\setmathfont{Libertinus Math}
+\setsansfont{Libertinus Sans}
+% Code, token strings and file names (\texttt).
+\IfFontExistsTF{JuliaMono Medium}{%
+  \setmonofont{JuliaMono Medium}[Scale=MatchLowercase, Contextuals=NoAlternate]}{%
+  \setmonofont{JuliaMono}[Extension=.ttf, UprightFont=*-Medium, Scale=MatchLowercase, Contextuals=NoAlternate]}
+
+% ---------------------------------------------------------------------
+% 2. Colours. Ink for everything, greys only as lighter ink, and one
+%    spot colour for the thing the figure is about (figure-design.md).
+% ---------------------------------------------------------------------
+\RequirePackage{xcolor}
+\definecolor{ink}{HTML}{111111}
+\definecolor{soft}{HTML}{555555}   % notes and secondary labels
+\definecolor{faint}{HTML}{8A8A8A}  % hatching, guides, inactive things
+\definecolor{spot}{HTML}{C8372D}   % vermilion: the one thing that matters
+
+% ---------------------------------------------------------------------
+% 3. Notation (as in the ai-math notes): object roles, operators,
+%    delimiters, shapes, and numbers through siunitx.
+% ---------------------------------------------------------------------
+\RequirePackage{derivative}
+\RequirePackage{mleftright}
+\RequirePackage{siunitx}
+\sisetup{group-minimum-digits=4, group-separator={\,}}
+\providecommand{\vb}{\symbf}      % vectors: bold italic      \vb{x}
+\providecommand{\mb}{\symbfup}    % matrices: bold upright    \mb{W}
+\providecommand{\tp}{^{\top}}     % transpose                 \mb{X}\tp
+\providecommand{\R}{{\mathbb{R}}}
+\providecommand{\N}{{\mathbb{N}}}
+\providecommand{\Normal}{{\mathcal{N}}}
+\providecommand{\ind}{{\mathbb{1}}}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\Prob}{\mathbb{P}}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\KL}{KL}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\softmax}{softmax}
+\DeclareMathOperator{\ReLU}{ReLU}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\inner}{\langle}{\rangle}
+% \shaped{expr}{shape}: a shape label under a symbol, small and soft.
+\newcommand{\shaped}[2]{\underset{\textcolor{soft}{\scriptscriptstyle #2}}{#1}}
+
+\iflf@full
+% ---------------------------------------------------------------------
+% 4. Drawing and plotting
+% ---------------------------------------------------------------------
+\RequirePackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, calc, fit, patterns.meta, backgrounds}
+\RequirePackage{tikz-cd}
+\tikzcdset{arrow style=tikz, diagrams={>={Latex[length=1.9mm, width=1.3mm]}}}
+\RequirePackage{pgfplots}
+\RequirePackage{pgfplotstable}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{fillbetween}
+\RequirePackage{import}   % \import{build/}{name.pgf} for matplotlib figures
+\tikzset{every picture/.style={line cap=round, line join=round}, >={Latex[length=1.9mm, width=1.3mm]}}
+
+% Text in a figure: an italic run-in title, the formula under it, notes, and the key.
+%   \node[head] at (...) {(a)\enspace Linear model.};
+\tikzset{
+  head/.style={font=\small\itshape, text=ink, anchor=base west, inner sep=0pt},
+  formula/.style={font=\footnotesize, text=ink, anchor=base west, inner sep=0pt},
+  note/.style={font=\footnotesize\itshape, text=soft, align=left, inner sep=0pt},
+  textlabel/.style={font=\footnotesize\itshape, text=ink, inner sep=1.5pt},
+  % A label sitting on hatching or lines: white behind it.
+  knockout/.style={fill=white, inner sep=1.5pt},
+  % A level line, in plots and drawings alike: where a model is 90 % sure, a threshold, chance.
+  % (Not `level`, which TikZ trees apply to every tree level.)
+  level line/.style={draw=ink, line width=0.4pt, dash pattern=on 0.6pt off 1.6pt},
+}
+
+% Regions: hatching, never a filled tint.
+\tikzset{
+  hatch/.style={pattern={Lines[angle=45, distance=3.2pt, line width=0.3pt]}, pattern color=#1},
+  hatch/.default=ink!45,
+  hatch dense/.style={pattern={Lines[angle=45, distance=2.2pt, line width=0.3pt]}, pattern color=#1},
+  hatch dense/.default=ink!55,
+  hatch back/.style={pattern={Lines[angle=-45, distance=3.2pt, line width=0.3pt]}, pattern color=#1},
+  hatch back/.default=ink!45,
+  crosshatch/.style={pattern={Hatch[angle=45, distance=3.2pt, line width=0.3pt]}, pattern color=#1},
+  crosshatch/.default=ink!45,
+}
+
+% Axes: framed on all four sides, ticks inside on every side, no grid.
+\pgfplotsset{
+  engraved/.style={
+    scale only axis,
+    axis line style={draw=ink, line width=0.5pt},
+    tick style={draw=ink, line width=0.4pt}, tick align=inside, major tick length=2.5pt,
+    minor tick length=1.4pt, xtick pos=both, ytick pos=both,
+    tick label style={font=\footnotesize, text=ink},
+    label style={font=\footnotesize\itshape, text=ink},
+    legend style={draw=none, fill=none, font=\footnotesize\itshape},
+    scaled ticks=false,
+    clip mode=individual,
+  },
+  % Series are told apart by line style and mark, not colour. The focal series is spot.
+  series ink/.style={ink, line width=0.7pt},
+  series dashed/.style={ink, line width=0.7pt, dashed},
+  series dotted/.style={ink, line width=0.6pt, dash pattern=on 0.6pt off 1.6pt},
+  series dashdot/.style={ink, line width=0.7pt, dash pattern=on 3pt off 1.5pt on 0.6pt off 1.5pt},
+  series spot/.style={spot, line width=0.7pt},
+  % Classes are told apart by mark shape: open circle, filled dot, open triangle, open square.
+  class open/.style={only marks, mark=o, mark size=0.95pt, mark options={draw=ink, fill=white, line width=0.3pt}},
+  class filled/.style={only marks, mark=*, mark size=0.75pt, mark options={draw=ink, fill=ink}},
+  class triangle/.style={only marks, mark=triangle, mark size=1.2pt, mark options={draw=ink, line width=0.3pt}},
+  class square/.style={only marks, mark=square, mark size=0.9pt, mark options={draw=ink, line width=0.3pt}},
+  % The points the figure is about (errors, a chosen example): a spot ring drawn around the
+  % point, so the point's own mark still shows its class and the ring reads in greyscale.
+  marked/.style={only marks, mark=o, mark size=1.9pt, mark options={draw=spot, line width=0.55pt}},
+}
+
+% ---------------------------------------------------------------------
+% 5. Diagrams: boxes, flows, networks, matrix grids and bars, in ink.
+% ---------------------------------------------------------------------
+\tikzset{
+  % A value or a component: a square-cornered box in thin ink.
+  box/.style={rectangle, draw=ink, line width=0.45pt, fill=white, align=center,
+    inner xsep=6pt, inner ysep=3.5pt, minimum width=21mm},
+  % An input or a parameter: the same box, double-ruled.
+  inputbox/.style={box, double=white, double distance=1.2pt, line width=0.35pt},
+  % The forward pass and data flow: thin ink arrows.
+  fwd/.style={-{Latex[length=1.9mm, width=1.3mm]}, draw=ink, line width=0.45pt},
+  % Gradients and the backward pass: dashed spot arrows.
+  back/.style={-{Latex[length=1.9mm, width=1.3mm]}, draw=spot, line width=0.45pt, dash pattern=on 2.2pt off 1.4pt},
+  backlabel/.style={font=\footnotesize, text=spot, inner sep=1pt},
+  % Network diagrams: neurons and edges; an inactive neuron is faint.
+  nnode/.style={circle, draw=ink, line width=0.45pt, fill=white, minimum size=6.5mm, inner sep=0pt, font=\footnotesize},
+  nnode off/.style={nnode, draw=faint, text=faint},
+  nedge/.style={draw=ink!35, line width=0.35pt},
+  hedge/.style={draw=ink, line width=0.9pt},
+  wlab/.style={font=\scriptsize, sloped, above, inner sep=1.2pt, text=ink},
+  opnode/.style={circle, draw=ink, line width=0.45pt, fill=white, inner sep=0pt, minimum size=4.6mm, font=\footnotesize},
+}
+% \shp{T \times d}: a tensor's shape in a figure, small and soft, in brackets.
+\newcommand{\shp}[1]{{\scriptsize\color{soft}$[#1]$}}
+
+% Matrices and vectors as grids of cells. Shading first (a grey fill for
+% magnitudes, hatching for a highlighted band, spot for the one entry),
+% then \mgrid draws the rules in faint ink and frames the whole in ink.
+\tikzset{
+  mrule/.style={draw=faint, line width=0.3pt},
+  mframe/.style={draw=ink, line width=0.5pt},
+  mband/.style={hatch=ink!40},
+  mpick/.style={fill=spot!30},
+  mring/.style={draw=spot, line width=0.75pt},
+  mmask/.style={hatch back=ink!25},
+}
+% \mgrid[step options]{(x0,y0)}{(x1,y1)}: rules and frame of the grid between two corners.
+\NewDocumentCommand{\mgrid}{O{}mm}{%
+  \draw[mrule,step=1,#1] #2 grid #3;
+  \draw[mframe] #2 rectangle #3;}
+
+% Bars: an ink outline over light hatching; the focal bar is spot.
+%   \pbar{x}{width}{height}{ink or spot}
+\NewDocumentCommand{\pbar}{mmmm}{%
+  \pgfmathsetmacro{\pbh}{#3}%
+  \ifdim\pbh pt>0.004pt
+    \draw[#4, line width=0.45pt, hatch=#4!50] (#1,0) rectangle ++(#2,\pbh);
+  \else
+    \draw[#4, line width=0.8pt] (#1,0) -- ++(#2,0);
+  \fi}
+\tikzset{pbase/.style={draw=ink, line width=0.5pt}}
+
+% ---------------------------------------------------------------------
+% 6. The README canvas. Every figure is drawn on a white canvas of one
+%    fixed width, so GitHub scales every PNG by the same factor and text
+%    has the same size in every figure. A narrower picture is centred.
+%      \begin{figurecanvas} ... \end{figurecanvas}
+% ---------------------------------------------------------------------
+\newlength{\figwidth}
+\setlength{\figwidth}{6.5in}
+\newenvironment{figurecanvas}
+  {\pagecolor{white}\noindent\begin{minipage}{\figwidth}\centering\color{ink}}
+  {\end{minipage}}
+\fi
+\endinput

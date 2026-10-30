@@ -1,0 +1,25 @@
+\documentclass[border=10pt]{standalone}
+\usepackage{latentfig}
+\input{build/values}
+\begin{document}
+\begin{figurecanvas}
+\begin{tikzpicture}[x=0.42cm, y=0.42cm]
+% One grid per seed: rows are layers 0 to 3 from the top, columns heads 0 to 7.
+\foreach \run/\letter/\crit/\rise [count=\i from 0] in {
+    default-seed0/a/\critA/\critriseA, default-seed1/b/\critB/\critriseB, default-seed2/c/\critC/\critriseC} {
+  \begin{scope}[shift={(\i*11.6,0)}]
+    \input{build/heads-\run.tikz}
+    \foreach \h in {0,...,7} { \node[font=\scriptsize\itshape, anchor=south] at (\h+0.5,4.05) {\h}; }
+    \node[font=\scriptsize\itshape, anchor=south west, align=left, inner sep=0pt] at (8.25,4.12) {acc.\ lost};
+    \node[head] at (0,5.35) {(\letter)\enspace Seed \i.};
+    \node[note, anchor=north west] at (0,-0.35) {critical head \crit: $+\rise$ nats};
+  \end{scope}
+}
+\foreach \l in {0,...,3} { \node[font=\scriptsize\itshape, anchor=east] at (-0.2,3.5-\l) {layer \l}; }
+\node[font=\scriptsize\itshape, anchor=south east] at (-0.2,4.05) {head};
+\node[note, anchor=north, align=center] at (16.8,-2.0)
+  {Shading: test-loss rise when one head is mean-ablated, darker for larger (numbers from 0.1 up written in);\\
+   red ring: the critical head. Beside each row: token accuracy lost (\%) when that whole layer's attention is ablated.};
+\end{tikzpicture}
+\end{figurecanvas}
+\end{document}

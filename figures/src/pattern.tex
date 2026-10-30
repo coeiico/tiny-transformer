@@ -1,0 +1,23 @@
+\documentclass[border=10pt]{standalone}
+\usepackage{latentfig}
+\input{build/pattern-values}
+\begin{document}
+\begin{figurecanvas}
+\begin{tikzpicture}[x=0.3cm, y=0.3cm]
+\input{build/pattern.tikz}
+% Which part of the sequence each band of rows and columns is.
+\pgfmathsetmacro{\outstart}{\patternn+1}
+\node[note, anchor=south] at (\patternn/2,\patternsize+0.2) {input list (keys)};
+\node[note, anchor=south] at ({(\outstart+\patternsize)/2},\patternsize+0.2) {sorted output};
+\node[note, anchor=south, rotate=90] at (-1.9,{\patternsize-\patternn/2}) {input list (queries)};
+\node[note, anchor=south, rotate=90] at (-1.9,{(\patternsize-\outstart)/2}) {sorted output};
+\node[head, anchor=base west] at (0,\patternsize+2.0) {Head \patternlayer.\patternhead, the critical head of seed 0, on one test list.};
+\node[note, anchor=north west, align=left] at (\patternsize+1.2,\patternsize) {
+  Each row is a query: the position\\ attending. Each column is a key:\\ the position attended to.\\[4pt]
+  Shading: the attention weight,\\ darker for more.\\[4pt]
+  {\color{spot}Red rings}: for each output, the\\ input position holding the value\\ it has just written.\\[4pt]
+  Back-hatched: later positions,\\ hidden by the causal mask.\\[4pt]
+  \textsc{s}: the separator.};
+\end{tikzpicture}
+\end{figurecanvas}
+\end{document}
