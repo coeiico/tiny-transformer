@@ -130,6 +130,8 @@ Apply this checklist with the project-specific requirements and exceptions in
 
 - **Optional, not done:** a converter to TransformerLens's `HookedTransformer`, to borrow its analysis tools. The hook names follow TransformerLens's style closely enough that one would be short.
 - The README figures are drawn in LaTeX from the files in `figures/data/`, copied from `runs/<run>/analysis/figures/figure-data/` for the runs each caption names (`.agents/instructions/figure-design.md` says how). Building them needs LuaLaTeX, the Libertinus fonts and `pdftoppm`; the PNGs are committed.
+- **Hugging Face.** The four runs in this README (`default-seed0` to `default-seed2` and `bigram-seed0`), with weights, `model_config.json`, `metrics.json`, plots and their analysis, are at [coeiico/tiny-transformer](https://huggingface.co/coeiico/tiny-transformer), one folder per run, so they can be loaded without training (`tiny_transformer.hub.load_model`). `just push <run>` uploads one run.
+- **Data.** There is no dataset to download: the sorting lists are generated from the task settings and seeds, recorded in each run's `metrics.json`.
 - Runs save evaluation weights only, not resumable checkpoints: a full run takes about 3 minutes, so restarting is cheaper than resuming.
 - Other repos install this as a git dependency. While developing both at once, point them at the local folder with `uv add --editable ../tiny-transformer`, then switch back to the git source before committing.
 
