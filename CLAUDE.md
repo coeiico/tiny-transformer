@@ -108,6 +108,12 @@ remove an item that is done.
 - The look lives in `figures/tex/latentfig.sty`, identical in every repo of the project. Change
   a design value only when the user asks, and then in every copy.
 
+## Local Runs
+
+- Start every local training run, sweep or long analysis in tmux with `just bg <recipe> [args]`,
+  for example `just bg train --run-name wd1.0-seed0`. `tmux ls` lists the sessions and
+  `tmux attach -t <session>` watches one; each session's output is also in `runs/logs/`.
+
 ## Project Overview
 
 tiny-transformer is project 3 of 18 in the Latent Space Project: small ML repos that test whether

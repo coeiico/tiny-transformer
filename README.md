@@ -141,6 +141,7 @@ Needs [uv](https://docs.astral.sh/uv/) and [just](https://just.systems/). Everyt
 just setup                                # uv sync, then install the pre-commit hooks
 just quick                                # CPU smoke test, a few seconds
 just train --run-name default-seed0       # full run, about 3.5 minutes on an RTX 3060
+just bg train ...                         # the same, in a detached tmux session; any recipe works
 just train --run-name bigram-seed0 --model.n-layers 0
 just analyze default-seed0 --name final   # baselines, head ablations, attention plots
 just figures                              # rebuild the README figures (LaTeX) from figures/data/

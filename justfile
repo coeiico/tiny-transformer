@@ -19,6 +19,15 @@ quick:
 train *args:
   uv run train.py {{args}}
 
+# Run any recipe in a detached tmux session, logged to runs/logs/, e.g. just bg train --run-name wd1.0-seed0
+bg recipe *args:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  mkdir -p runs/logs
+  session="{{repo}}-{{recipe}}-$(date +%Y%m%d-%H%M%S)"
+  tmux new-session -d -s "$session" "PYTHONUNBUFFERED=1 just {{recipe}} {{args}} 2>&1 | tee runs/logs/$session.log; echo; echo 'Finished. Press enter to close.'; read"
+  echo "tmux session $session: tmux attach -t $session (detach with ctrl-b d), log runs/logs/$session.log"
+
 # Inference on a saved run
 predict run *args:
   uv run predict.py --run runs/{{run}} {{args}}
@@ -61,6 +70,6 @@ fix:
 notebook name='explore':
   uv run marimo edit notebooks/{{name}}.py
 
-# Upload a run's weights, metrics and plots to the Hugging Face Hub
+# Upload a run's weights, metrics and plots to the Hugging Face Hub, into a folder named after the run
 push run:
-  uv run hf upload {{hf_user}}/{{repo}} runs/{{run}}
+  uv run hf upload {{hf_user}}/{{repo}} runs/{{run}} {{run}}
