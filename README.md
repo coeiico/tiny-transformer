@@ -81,8 +81,6 @@ The hook names and shapes are listed in the docstring at the top of [`model.py`]
 
 ## How it works
 
-The owner knows autograd, optimizers and the MLP block. This is what sits on top.
-
 - **Embeddings.** Each token id looks up a learned vector of width `d_model`, and each position looks up another (learned absolute positions, as in GPT-2). Their sum starts the **residual stream**: one vector per position that every layer reads from and adds to.
 - **Causal self-attention.** At each position, a head forms a *query* ("what am I looking for?") and compares it with every earlier position's *key* ("what do I hold?") by dot product. A softmax turns those scores into weights, and the head returns the weighted sum of the earlier positions' *values*. Scores for later positions are set to −∞ before the softmax, so a position can never see the future: that is what lets one forward pass train every next-token prediction in a sequence at once. Several heads run side by side, each free to look for something different, and an output matrix `W_O` mixes their results back into the stream.
 - **Pre-norm blocks.** Each block normalises a copy of the stream, runs attention on it and adds the result back, then does the same with the MLP. The stream itself is only ever added to, so gradients reach early layers through the additions. GPT-2 also shrinks the initial weights that write into the stream by 1/√(2 · layers), so the stream does not grow with depth at the start of training.
